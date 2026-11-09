@@ -1,0 +1,1 @@
+.brxe-filter-datepicker{position:relative;width:100%}.brxe-filter-datepicker :where(input){width:100%}.brxe-filter-datepicker .icon{cursor:pointer;display:grid;height:100%;margin-inline:10px;place-items:center;position:absolute;right:0;top:50%;transform:translateY(-50%);visibility:hidden}.brxe-filter-datepicker .icon.brx-show{visibility:visible}

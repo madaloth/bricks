@@ -1,0 +1,157 @@
+<?php
+namespace Bricks;
+
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+class Element_Text_Basic extends Element {
+	public $block    = 'core/paragraph';
+	public $category = 'basic';
+	public $name     = 'text-basic';
+	public $icon     = 'ti-align-justify';
+
+	public function get_label() {
+		return esc_html__( 'Basic Text', 'bricks' );
+	}
+
+	public function set_controls() {
+		$this->controls['text'] = [
+			'type'        => 'textarea',
+			'lineBreak'   => 'br',
+			'default'     => esc_html__( 'Here goes your text ... Select any part of your text to access the formatting toolbar.', 'bricks' ),
+			'description' => esc_html__( 'Select text on canvas to format it. To add headings, paragraphs, and images use the "Rich Text" element.', 'bricks' ),
+		];
+
+		$default_tag = $this->theme_styles['tag'] ?? 'div'; // Default tag fallback to 'div' (@since 2.1.3)
+
+		$this->controls['tag'] = [
+			'label'       => esc_html__( 'HTML tag', 'bricks' ),
+			'type'        => 'select',
+			'options'     => [
+				'div'        => 'div',
+				'p'          => 'p',
+				'span'       => 'span',
+				'figcaption' => 'figcaption',
+				'address'    => 'address',
+				'figure'     => 'figure',
+				'custom'     => esc_html__( 'Custom', 'bricks' ),
+			],
+			'lowercase'   => true,
+			'inline'      => true,
+			'placeholder' => $default_tag,
+		];
+
+		$this->controls['customTag'] = [
+			'label'       => esc_html__( 'Custom tag', 'bricks' ),
+			'info'        => esc_html__( 'Without attributes', 'bricks' ),
+			'type'        => 'text',
+			'inline'      => true,
+			'placeholder' => $default_tag,
+			'required'    => [ 'tag', '=', 'custom' ],
+		];
+
+		// p-tag info (@since 1.12)
+		$this->controls['textInfo'] = [
+			'type'     => 'info',
+			'content'  => esc_html__( 'When using dynamic data that contains formatted text (e.g. WYSIWYG field, or any other HTML tags such as p, div, headings, etc.), set the HTML tag to "div", not "p". Alternatively, use the Rich Text element.', 'bricks' ),
+			'required' => [ 'tag', '=', 'p' ],
+		];
+
+		$this->controls['link'] = [
+			'label' => esc_html__( 'Link to', 'bricks' ),
+			'type'  => 'link',
+		];
+
+		$this->controls['wordsLimit'] = [
+			'label' => esc_html__( 'Words limit', 'bricks' ),
+			'type'  => 'number',
+			'min'   => 1,
+		];
+
+		$this->controls['readMore'] = [
+			'label'          => esc_html__( 'Read more', 'bricks' ),
+			'type'           => 'text',
+			'inline'         => true,
+			'hasDynamicData' => false,
+			'required'       => [ 'wordsLimit', '!=', '' ],
+		];
+	}
+
+	public function render() {
+		$settings = $this->settings;
+
+		if ( ! isset( $settings['text'] ) || $settings['text'] === '' ) {
+			return;
+		}
+
+		$content = $settings['text'];
+
+		// Set $no_root to true if content contains {do_action:...} (@since 1.9.1, @see #2yddfub)
+		$no_root = preg_match( '/{do_action:/', $content );
+
+		// Resolve some {do_action} not fully working in certain cases (@see #862je3dz8)
+		$content = $this->render_dynamic_data( $content );
+
+		// Enforce words limit (@since 1.9.3)
+		if ( ! empty( $settings['wordsLimit'] ) && is_numeric( $settings['wordsLimit'] ) ) {
+			$more    = $settings['readMore'] ?? '';
+			$content = Helpers::trim_words( $content, $settings['wordsLimit'], $more, true, false );
+		}
+
+		$content = Helpers::sanitize_builder_text_content( $content, $this->is_frontend );
+
+		// Link
+		if ( ! empty( $settings['link'] ) ) {
+			$this->set_link_attributes( '_root', $settings['link'] );
+			$this->tag = 'a';
+		}
+
+		if ( $no_root && ! bricks_is_builder() && ! bricks_is_builder_call() ) {
+			echo $content;
+		} else {
+			echo "<{$this->tag} {$this->render_attributes( '_root' )}>{$content}</{$this->tag}>";
+		}
+	}
+
+	public static function render_builder() { ?>
+		<script type="text/x-template" id="tmpl-bricks-element-text-basic">
+			<contenteditable
+				:key="settings.link ? 'a' : tag"
+				:tag="settings.link ? 'a' : tag"
+				:name="name"
+				controlKey="text"
+				toolbar="style align link"
+				lineBreak="br"
+				:settings="settings"/>
+		</script>
+		<?php
+	}
+
+	public function convert_element_settings_to_block( $settings ) {
+		if ( ! isset( $settings['text'] ) ) {
+			return;
+		}
+
+		$text       = trim( $settings['text'] );
+		$block_name = $this->block;
+
+		// Preserve existing paragraphs and avoid wrapping block-level HTML in a paragraph.
+		$is_paragraph = preg_match( '#^<p>(?:(?!</?p\b).)*</p>$#is', $text );
+
+		if ( ! $is_paragraph && preg_match( '#</?(?:address|article|aside|blockquote|div|dl|fieldset|figure|footer|form|h[1-6]|header|hr|main|nav|ol|p|pre|section|table|ul)\b#i', $text ) ) {
+			$block_name = 'core/html';
+		} elseif ( ! $is_paragraph ) {
+			$text = '<p>' . $text . '</p>';
+		}
+
+		$block = [
+			'blockName'    => $block_name,
+			'attrs'        => [],
+			'innerContent' => [ $text ],
+		];
+
+		return $block;
+	}
+
+	// NOTE: Convert block to element settings: Use Bricks "Rich Text" element instead
+	// public function convert_block_to_element_settings( $block, $attributes ) {}
+}

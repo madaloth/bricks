@@ -1,0 +1,1 @@
+.brxe-toggle-mode{all:unset;align-items:center;cursor:pointer;justify-content:center}.brxe-toggle-mode,.brxe-toggle-mode .toggle{display:inline-flex}.brxe-toggle-mode svg{height:1em;width:1em}:root[data-brx-theme=dark] .brxe-toggle-mode .toggle.light,:root[data-brx-theme=light] .brxe-toggle-mode .toggle.dark{display:none}

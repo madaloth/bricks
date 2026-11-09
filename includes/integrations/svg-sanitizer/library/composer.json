@@ -1,0 +1,12 @@
+{
+    "require": {
+        "enshrined/svg-sanitize": "^1.1.1"
+    },
+    "config": {
+        "allow-plugins": false,
+        "platform": {
+            "php": "7.4.0"
+        },
+        "autoloader-suffix": "BricksSvgSanitizer"
+    }
+}

@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Bricks WooCommerce Preset",
+  "description": "Schema for predefined element presets. JSON files use the Bricks clipboard format (flat content array with id/parent references).",
+  "type": "object",
+  "required": ["id", "content"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique preset identifier (kebab-case)."
+    },
+    "label": {
+      "type": "string",
+      "description": "Human-readable label (English, translated at runtime)."
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description (English, translated at runtime)."
+    },
+    "presetVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semver version of the preset."
+    },
+    "target": {
+      "type": "object",
+      "required": ["generatorType", "generatorPage", "generatorArea"],
+      "properties": {
+        "generatorType": { "type": "string" },
+        "generatorPage": { "type": "string" },
+        "generatorArea": { "type": "string" },
+        "targetElement": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "content": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/flatElement" },
+      "description": "Flat element array in Bricks clipboard format."
+    },
+    "source": {
+      "type": "string",
+      "description": "Clipboard metadata (stripped at load time)."
+    },
+    "sourceUrl": {
+      "type": "string",
+      "description": "Clipboard metadata (stripped at load time)."
+    },
+    "version": {
+      "type": "string",
+      "description": "Clipboard metadata: Bricks version (stripped at load time)."
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "flatElement": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Element ID from clipboard (remapped at generation time)."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Bricks element type name."
+        },
+        "parent": {
+          "type": "string",
+          "description": "Parent element ID."
+        },
+        "children": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array of child element IDs."
+        },
+        "label": {
+          "type": "string",
+          "description": "Element label in the structure panel."
+        },
+        "settings": {
+          "type": "object",
+          "description": "Element settings/controls."
+        },
+        "themeStyles": {
+          "type": "object",
+          "description": "Theme styles (stripped at load time)."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
